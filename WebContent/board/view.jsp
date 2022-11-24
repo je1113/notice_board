@@ -24,10 +24,26 @@
 	try{
 		conn = Dbconn.getConnection();
 		if(conn != null){
-			String sql = "update tb_board set b_hit = b_hit+1 where b_idx=?";
+			
+			String sql = "select hi_idx from tb_hit where hi_boardidx=? and hi_userid=? ";
 			pstmt= conn.prepareStatement(sql);
 			pstmt.setString(1,b_idx);
-			pstmt.executeUpdate();
+			pstmt.setString(2,userid);
+			rs= pstmt.executeQuery();
+			if(rs.next()){
+				
+			}else{
+				sql="update tb_board set b_hit = b_hit+1 where b_idx=?";
+				pstmt= conn.prepareStatement(sql);
+				pstmt.setString(1,b_idx);
+				pstmt.executeUpdate();
+				sql="insert into tb_hit(hi_userid, hi_boardidx) values (?,?)";
+				pstmt= conn.prepareStatement(sql);
+				pstmt.setString(1,userid);
+				pstmt.setString(2,b_idx);
+				pstmt.executeUpdate();
+	
+			}
 			
 			sql = "select b_userid,b_name,b_title,b_hit,b_regdate,b_like,b_content from tb_board where b_idx=?;";
 			pstmt= conn.prepareStatement(sql);
@@ -86,20 +102,6 @@
 		if(yn) location.href='../ReplyDelOk?re_idx='+re_idx+"&b_idx="+b_idx;
 	}
 	
-	/*
-	function goodCheck(){
-		const xhr = new XMLHttpRequest();
-		xhr.open('get','like_ok.jsp?b_idx=<%=b_idx%>',true);
-		xhr.send();
-		xhr.onreadystatechange = function(){
-			if(xhr.readyState == XMLHttpRequest.DONE && xhr.status ==200){
-				document.getElementById('like').innerHTML = xhr.responseText;
-				
-			}	
-		}
-	}
-	*/
-	
 	function like(){
 		const isHeart = document.querySelector("img[title=on]");
 		if(isHeart){
@@ -137,7 +139,7 @@
 			<th>작성자</th><td><%=b_userid%>(<%=b_name%>)</td>
 		</tr>
 		<tr>
-			<th>조회수</th><td><%=b_hit%></td>
+			<th>조회수</th><td><span id="hit"><%=b_hit %></span></td>
 		</tr>
 		<tr>
 			<th>좋아요</th><td> <%if(isLike){%><img id="heart" src="./like_on.png" alt="좋아요" onclick="like()">
